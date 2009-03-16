@@ -92,7 +92,7 @@ module Technoweenie # :nodoc:
         parent_options = attachment_options || {}
         # doing these shenanigans so that #attachment_options is available to processors and backends
         self.attachment_options = options
-
+        
         attr_accessor :thumbnail_resize_options
 
         attachment_options[:storage]     ||= (attachment_options[:file_system_path] || attachment_options[:path_prefix]) ? :file_system : :db_file
@@ -287,7 +287,11 @@ module Technoweenie # :nodoc:
           thumb.send(:'attributes=', {
             :content_type             => content_type,
             :filename                 => thumbnail_name_for(file_name_suffix),
-            :thumbnail_resize_options => size
+            :thumbnail_resize_options => size,
+            :crop_x                   => crop_x,
+            :crop_y                   => crop_y,
+            :crop_width               => crop_width,
+            :crop_height              => crop_height
           }, false)
           callback_with_args :before_thumbnail_saved, thumb
           thumb.save!
@@ -394,7 +398,23 @@ module Technoweenie # :nodoc:
       def with_image(&block)
         self.class.with_image(temp_path, &block)
       end
+      
+      def crop_x
+        read_attribute(:crop_x) || 0
+      end
 
+      def crop_y
+        read_attribute(:crop_y) || 0
+      end
+      
+      def crop_width
+        read_attribute(:crop_width) || read_attribute(:width)
+      end
+
+      def crop_height
+        read_attribute(:crop_height) || read_attribute(:height)
+      end
+            
       protected
         # Generates a unique filename for a Tempfile.
         def random_tempfile_filename
